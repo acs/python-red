@@ -1,0 +1,33 @@
+<html>
+<head>
+  <title>OpenFDA Client</title>
+</head>
+<body>
+  <h1>OpenFDA Client</h1>
+  <div>
+    This client let's you get data from OpenFDA for the last three months
+    about Adverse drug event reports.
+    It uses
+    <a href="https://open.fda.gov/drug/event/reference/">openFDA API endpoint for adverse drug events</a>.
+  </div>
+  <br><br>
+  <form action="searchDrug" method="get">
+    Drug name:
+    <input type="text" name="drug">
+    <input type="submit" value="Search Drug">
+  </form>
+  <form action="searchCompany" method="get">
+    Company name:
+    <input type="text" name="company">
+    <input type="submit" value="Search Company">
+  </form>
+  <form action="listDrugs" method="get">
+    List drugs
+    <input type="submit" value="List drugs">
+  </form>
+  <form action="listCompanies" method="get">
+    List drugs
+    <input type="submit" value="List companies">
+  </form>
+</body>
+</html>
