@@ -9,6 +9,7 @@ class OpenFDAParser():
         for event in events_json:
             for drug in event['patient']['drug']:
                 companies += drug['openfda']['manufacturer_name']
+        # companies = ['c1', 'c2', 'c3']
         return companies
 
     def get_drugs(self, events_json):
@@ -17,6 +18,7 @@ class OpenFDAParser():
             for drug in event['patient']['drug']:
                 print(drug.keys())
                 drugs.append(drug['medicinal_product'])
+        # drugs = ['d1', 'd2', 'd3']
         return drugs
 
 class OpenFDA():
@@ -57,13 +59,21 @@ class OpenFDAClient():
     def __call(self, params=None):
         print ("OpenFDA query: %s %s" % (self.OPENFDA_API_URL, params))
 
-        req = requests.get(self.OPENFDA_API_URL, params=params)
-        return req.json()
+        res_json = {}
+
+        try:
+            req = requests.get(self.OPENFDA_API_URL, params=params)
+            res_json = req.json()
+        except requests.exceptions.ConnectionError:
+            print("Can not connect to %s" % self.OPENFDA_API_URL)
+
+        return res_json
 
     def list(self, months=6):
         # Return a list of ITEMS_PER_PAGE from the last months
 
         print ("Listing drug events for last %i months" % months)
+        found = []
 
         end_date = datetime.datetime.now()
         start_date = end_date - dateutil.relativedelta.relativedelta(months=months)
@@ -74,8 +84,9 @@ class OpenFDAClient():
         # Always work with just the first 100 items
         params = "limit=%i" % (self.ITEMS_PER_PAGE)
         params += "&" + search
-        found = self.__call(params)['results']
-
+        res = self.__call(params)
+        if 'results' in res:
+            found = self.__call(params)['results']
         return found
 
     def search(self, kind, value):
@@ -100,6 +111,8 @@ class OpenFDAClient():
         # Always work with just the first 100 items
         params = "limit=%i" % (self.ITEMS_PER_PAGE)
         params += "&" + search
-        found = self.__call(params)['results']
+        res = self.__call(params)
+        if 'results' in res:
+            found = res['results']
 
         return found
