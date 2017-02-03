@@ -1,33 +1,82 @@
+import datetime
+
+import dateutil.relativedelta
 import requests
 
+class OpenFDAParser():
+    def get_companies(self, events_json):
+        companies = []
+        for event in events_json:
+            for drug in event['patient']['drug']:
+                companies += drug['openfda']['manufacturer_name']
+        return companies
+
+    def get_drugs(self, events_json):
+        drugs = []
+        for event in events_json:
+            for drug in event['patient']['drug']:
+                print(drug.keys())
+                drugs.append(drug['medicinal_product'])
+        return drugs
+
 class OpenFDA():
+    def __init__(self):
+        self.fda = OpenFDAClient()
+        self.fda_parser = OpenFDAParser()
+
     def search_drug(self, name):
-        fda = OpenFDAClient()
         msg = self.__class__.__name__ + " searchining for drug " + name
         print(msg)
-        return fda.search("drug", name)
+        return self.fda.search("drug", name)
 
     def list_drugs(self):
         print(self.__class__.__name__," listing drugs")
+        fda = OpenFDAClient()
+        events_list = fda.list()
+        # Extract the drugs
+        return self.fda_parser.get_drugs(events_list)
 
     def search_company(self, name):
-        fda = OpenFDAClient()
         print(self.__class__.__name__," searchining for drug ", name)
-        return fda.search("company", name)
+        return self.fda.search("company", name)
 
     def list_companies(self):
         print(self.__class__.__name__," listing companies")
+        events_list = self.fda.list()
+        # Extract the companies
+        return self.fda_parser.get_companies(events_list)
 
 class OpenFDAClient():
     #  HOWTO use the API: https://open.fda.gov/api/
-    ITEMS_PER_PAGE = 100 # Max items per page in OpenFDA API
+    # ITEMS_PER_PAGE = 100 # Max items per page in OpenFDA API
+    ITEMS_PER_PAGE = 5 # Max items per page in OpenFDA API
     OPENFDA_API_URL = "https://api.fda.gov/drug/event.json"
 
     SEARCH_KINDS = ['company', 'drug']
 
     def __call(self, params=None):
+        print ("OpenFDA query: %s %s" % (self.OPENFDA_API_URL, params))
+
         req = requests.get(self.OPENFDA_API_URL, params=params)
         return req.json()
+
+    def list(self, months=6):
+        # Return a list of ITEMS_PER_PAGE from the last months
+
+        print ("Listing drug events for last %i months" % months)
+
+        end_date = datetime.datetime.now()
+        start_date = end_date - dateutil.relativedelta.relativedelta(months=months)
+        start = start_date.strftime("%Y%m%d")
+        end = end_date.strftime("%Y%m%d")
+        search = "search=receivedate:[%s+TO+%s]" % (start, end)
+
+        # Always work with just the first 100 items
+        params = "limit=%i" % (self.ITEMS_PER_PAGE)
+        params += "&" + search
+        found = self.__call(params)['results']
+
+        return found
 
     def search(self, kind, value):
 
@@ -51,6 +100,6 @@ class OpenFDAClient():
         # Always work with just the first 100 items
         params = "limit=%i" % (self.ITEMS_PER_PAGE)
         params += "&" + search
-        found = self.__call(params)
+        found = self.__call(params)['results']
 
         return found

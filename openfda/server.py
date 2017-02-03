@@ -19,7 +19,7 @@ class OpenFDAHandler(http.server.BaseHTTPRequestHandler):
         - listCompanies
     """
 
-    API_actions = ["/", "/searchDrug", "/listDrug", "/searchCompany",
+    API_actions = ["/", "/searchDrug", "/listDrugs", "/searchCompany",
                    "/listCompanies"]
 
     def send_client(self, status, message):
@@ -53,7 +53,8 @@ class OpenFDAHandler(http.server.BaseHTTPRequestHandler):
             drug_search = openfda.search_drug(drug)
             self.send_client(HTTP_OK, "Results for %s: %s" % (drug, drug_search))
         elif action == '/listDrugs':
-            self.send_client(HTTP_OK, "%s not implemented yet" % action)
+            list_drugs = openfda.list_drugs()
+            self.send_client(HTTP_OK, "Results for drugs listing: %s" % list_drugs)
         elif action == '/searchCompany':
             company_param = self.path.split("?")[1]
             company_param = urllib.parse.unquote(company_param)
@@ -61,11 +62,16 @@ class OpenFDAHandler(http.server.BaseHTTPRequestHandler):
             company_search = openfda.search_company(company)
             self.send_client(HTTP_OK, "Results for %s: %s" % (company, company_search))
         elif action == '/listCompanies':
-            self.send_client(HTTP_OK, "%s not implemented yet" % action)
+            list_companies = openfda.list_companies()
+            self.send_client(HTTP_OK, "Results for companies listing: %s" % list_companies)
         return
 
 Handler = OpenFDAHandler
 
 httpd = socketserver.TCPServer(("", PORT), Handler)
 print("serving at port", PORT)
-httpd.serve_forever()
+try:
+    httpd.serve_forever()
+except KeyboardInterrupt:
+    pass
+httpd.server_close()
