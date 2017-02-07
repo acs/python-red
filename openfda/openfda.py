@@ -8,7 +8,8 @@ class OpenFDAParser():
         companies = []
         for event in events_json:
             for drug in event['patient']['drug']:
-                companies += drug['openfda']['manufacturer_name']
+                if 'openfda' in drug:
+                    companies += drug['openfda']['manufacturer_name']
         # companies = ['c1', 'c2', 'c3']
         return companies
 
@@ -16,35 +17,42 @@ class OpenFDAParser():
         drugs = []
         for event in events_json:
             for drug in event['patient']['drug']:
-                print(drug.keys())
-                drugs.append(drug['medicinal_product'])
+                drugs.append(drug['medicinalproduct'])
         # drugs = ['d1', 'd2', 'd3']
         return drugs
 
 class OpenFDA():
+    cache = {}
     def __init__(self):
         self.fda = OpenFDAClient()
         self.fda_parser = OpenFDAParser()
 
     def search_drug(self, name):
-        msg = self.__class__.__name__ + " searchining for drug " + name
+        msg = self.__class__.__name__ + " searching for drug " + name
         print(msg)
         return self.fda.search("drug", name)
 
     def list_drugs(self):
         print(self.__class__.__name__," listing drugs")
-        fda = OpenFDAClient()
-        events_list = fda.list()
+        if 'event_list' in self.cache:
+            events_list = self.cache['event_list']
+        else:
+            events_list = self.fda.list()
+            self.cache['event_list'] = events_list
         # Extract the drugs
         return self.fda_parser.get_drugs(events_list)
 
     def search_company(self, name):
-        print(self.__class__.__name__," searchining for drug ", name)
+        print(self.__class__.__name__," searching for company ", name)
         return self.fda.search("company", name)
 
     def list_companies(self):
         print(self.__class__.__name__," listing companies")
-        events_list = self.fda.list()
+        if 'event_list' in self.cache:
+            events_list = self.cache['event_list']
+        else:
+            events_list = self.fda.list()
+            self.cache['event_list'] = events_list
         # Extract the companies
         return self.fda_parser.get_companies(events_list)
 

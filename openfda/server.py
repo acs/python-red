@@ -72,7 +72,7 @@ class OpenFDAHandler(http.server.BaseHTTPRequestHandler):
             self.send_client(HTTP_OK, html)
         elif action == '/listDrugs':
             list_drugs = openfda.list_drugs()
-            html = self.create_html_response("list of drugs", list_drugs)
+            html = self.create_html_response("list of drugs (last 6 months)", list_drugs)
             self.send_client(HTTP_OK, html)
         elif action == '/searchCompany':
             company_param = self.path.split("?")[1]
@@ -83,7 +83,7 @@ class OpenFDAHandler(http.server.BaseHTTPRequestHandler):
             self.send_client(HTTP_OK, html)
         elif action == '/listCompanies':
             list_companies = openfda.list_companies()
-            html = self.create_html_response("list of companies", list_companies)
+            html = self.create_html_response("list of companies (last 6 months)", list_companies)
             self.send_client(HTTP_OK, html)
         return
 
